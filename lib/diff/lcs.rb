@@ -62,19 +62,19 @@ module Diff::LCS # rubocop:disable Style/Documentation
   #
   #   lcs = seq1.lcs(seq2)
   def lcs(other, &block) #:yields self[i] if there are matched subsequences:
-    Diff::LCS.lcs(self, other, &block)
+    Diff::LCS.lcs(RDL.type_cast(self, "String or Array"), other, &block)
   end
 
   # Returns the difference set between +self+ and +other+. See
   # Diff::LCS#diff.
   def diff(other, callbacks = nil, &block)
-    Diff::LCS.diff(self, other, callbacks, &block)
+    Diff::LCS.diff(RDL.type_cast(self, "String or Array"), other, callbacks, &block)
   end
 
   # Returns the balanced ("side-by-side") difference set between +self+ and
   # +other+. See Diff::LCS#sdiff.
   def sdiff(other, callbacks = nil, &block)
-    Diff::LCS.sdiff(self, other, callbacks, &block)
+    Diff::LCS.sdiff(RDL.type_cast(self, "String or Array"), other, callbacks, &block)
   end
 
   # Traverses the discovered longest common subsequences between +self+ and
@@ -96,7 +96,7 @@ module Diff::LCS # rubocop:disable Style/Documentation
   # based on +self+ and the +patchset+ will be created. See Diff::LCS#patch.
   # Attempts to autodiscover the direction of the patch.
   def patch(patchset)
-    Diff::LCS.patch(self, patchset)
+    Diff::LCS.patch(RDL.type_cast(self, "String or Array"), patchset)
   end
   alias unpatch patch
 
@@ -104,14 +104,14 @@ module Diff::LCS # rubocop:disable Style/Documentation
   # based on +self+ and the +patchset+ will be created. See Diff::LCS#patch.
   # Does no patch direction autodiscovery.
   def patch!(patchset)
-    Diff::LCS.patch!(self, patchset)
+    Diff::LCS.patch!(RDL.type_cast(self, "String or Array"), patchset)
   end
 
   # Attempts to unpatch +self+ with the provided +patchset+. A new sequence
   # based on +self+ and the +patchset+ will be created. See Diff::LCS#unpatch.
   # Does no patch direction autodiscovery.
   def unpatch!(patchset)
-    Diff::LCS.unpatch!(self, patchset)
+    Diff::LCS.unpatch!(RDL.type_cast(self, "String or Array"), patchset)
   end
 
   # Attempts to patch +self+ with the provided +patchset+, using #patch!. If
@@ -298,6 +298,7 @@ class << Diff::LCS
       bx = string ? seq2[bj, 1] : seq2[bj]
 
       if b_line.nil?
+        #unless ax.nil? or (string and RDL.type_cast(ax, "String").empty?)
         unless ax.nil? or (string and ax.empty?)
           event = Diff::LCS::ContextChange.new('-', i, ax, bj, bx)
           event = yield event if block_given?
@@ -333,7 +334,7 @@ class << Diff::LCS
           bx = string ? seq2[bj, 1] : seq2[bj]
           event = Diff::LCS::ContextChange.new('>', (a_size - 1), ax, bj, bx)
           event = yield event if block_given?
-          callbacks.finished_a(event)
+          #callbacks.finished_a(event) ## MKCHANGE
           run_finished_a = true
         else
           ax = string ? seq1[ai, 1] : seq1[ai]
@@ -351,16 +352,16 @@ class << Diff::LCS
       # last B?
       if bj == b_size and ai < a_size
         if callbacks.respond_to?(:finished_b) and !run_finished_b
-          ax = string ? seq1[ai, 1] : seq1[ai]
+          ax = string ? seq2[ai, 1] : seq2[ai]
           bx = string ? seq2[-1, 1] : seq2[-1]
           event = Diff::LCS::ContextChange.new('<', ai, ax, (b_size - 1), bx)
           event = yield event if block_given?
-          callbacks.finished_b(event)
+          #callbacks.finished_b(event) ## MKCHANGE
           run_finished_b = true
         else
           bx = string ? seq2[bj, 1] : seq2[bj]
           loop do
-            ax = string ? seq1[ai, 1] : seq1[ai]
+            ax = string ? seq2[ai, 1] : seq2[ai]
             event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
             event = yield event if block_given?
             callbacks.discard_a(event)
@@ -502,7 +503,7 @@ class << Diff::LCS
           if callbacks.respond_to?(:change)
             event = Diff::LCS::ContextChange.new('!', ai, ax, bj, bx)
             event = yield event if block_given?
-            callbacks.change(event)
+            RDL.type_cast(callbacks, '[s]Diff::LCS::DefaultCallbacks').change(event)
             ai += 1
           else
             event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
@@ -548,7 +549,7 @@ class << Diff::LCS
         if callbacks.respond_to?(:change)
           event = Diff::LCS::ContextChange.new('!', ai, ax, bj, bx)
           event = yield event if block_given?
-          callbacks.change(event)
+          RDL.type_cast(callbacks, '[s]Diff::LCS::DefaultCallbacks').change(event)
           ai += 1
         else
           event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)

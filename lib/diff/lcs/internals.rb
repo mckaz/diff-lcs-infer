@@ -9,7 +9,7 @@ class << Diff::LCS
     when :sdiff
       traverse_balanced(seq1, seq2, callbacks)
     end
-    callbacks.finish if callbacks.respond_to? :finish
+    RDL.type_cast(callbacks, "Diff::LCS::DiffCallbacks").finish if callbacks.respond_to? :finish
 
     if block
       callbacks.diffs.map do |hunk|
@@ -67,16 +67,16 @@ class << Diff::LCS::Internals
     string = a.kind_of?(String)
 
     (a_start..a_finish).each do |i|
-      ai = string ? a[i, 1] : a[i]
+      ai = string ? RDL.type_cast(a, "String")[i, 1] : RDL.type_cast(a, "Array<String>")[i]
       bm = b_matches[ai]
-      k = nil
+      k = RDL.type_cast(nil, "Integer", force: true)
       bm.reverse_each do |j|
         if k and (thresh[k] > j) and (thresh[k - 1] < j)
           thresh[k] = j
         else
           k = replace_next_larger(thresh, j, k)
         end
-        links[k] = [k.positive? ? links[k - 1] : nil, i, j] unless k.nil?
+        links[k] = RDL.type_cast([k.positive? ? links[k - 1] : nil, i, j], "[nil, Integer, Integer]", force: true) unless k.nil?
       end
     end
 
@@ -293,10 +293,10 @@ enumerable as either source or destination value."
   # elements specified in the range of indexes specified by +interval+.
   def position_hash(enum, interval)
     string = enum.kind_of?(String)
-    hash = Hash.new { |h, k| h[k] = [] }
+    hash = RDL.type_cast(Hash.new { |h, k| h[k] = [] }, "Hash<String, Array<Integer>>")
     interval.each do |i|
       k = string ? enum[i, 1] : enum[i]
-      hash[k] << i
+      hash[RDL.type_cast(k, "String")] << i
     end
     hash
   end

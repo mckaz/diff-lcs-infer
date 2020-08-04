@@ -40,10 +40,10 @@ class Diff::LCS::Hunk
       b2 = @blocks[0].insert[-1].position
     end
 
-    @start_old = a1 || (b1 - before)
-    @start_new = b1 || (a1 + before)
-    @end_old   = a2 || (b2 - after)
-    @end_new   = b2 || (a2 + after)
+    @start_old = a1 || b1
+    @start_new = b1 || a1
+    @end_old   = a2 || b2
+    @end_new   = b2 || a2
 
     self.flag_context = flag_context
   end
@@ -244,7 +244,7 @@ class Diff::LCS::Hunk
       s, e = (@start_new + 1), (@end_new + 1)
     end
 
-    s < e ? "#{s}#{op}#{e}" : e.to_s
+    RDL.type_cast(s, "Integer") < e ? "#{s}#{op}#{e}" : e.to_s
   end
   private :context_range
 
@@ -259,7 +259,7 @@ class Diff::LCS::Hunk
       s, e = (@start_new + 1), (@end_new + 1)
     end
 
-    length = e - s + 1
+    length = RDL.type_cast(e, "Integer") - s + 1
     first = length < 2 ? e : s # "strange, but correct"
     length == 1 ? first.to_s : "#{first},#{length}"
   end

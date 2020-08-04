@@ -15,6 +15,8 @@ elsif RUBY_VERSION >= '2.0'
   end
 end
 
+gem 'rdl', path: "~/Documents/works/type-infer/rdl" #git: 'https://github.com/plum-umd/rdl.git', branch: 'infer'
+
 gemspec
 
 # vim: ft=ruby

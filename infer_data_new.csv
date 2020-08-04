@@ -1,0 +1,1179 @@
+Class,Method,Inferred Type,Original Type,Source Code,Comments
+[s]Diff::LCS,callbacks_for,(([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) -> ([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ]),,"def self.callbacks_for(callbacks)
+    callbacks.new rescue callbacks
+  end"
+[s]Diff::LCS,diff_traversal,"(XXX, ([ []: (Number) -> XXX ] and [ []: (Number, Number) -> XXX ] and [ []: (XXX) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) { XXX } -> XXX",,"def diff_traversal(method, seq1, seq2, callbacks, &block)
+    callbacks = callbacks_for(callbacks)
+    case method
+    when :diff
+      traverse_sequences(seq1, seq2, callbacks)
+    when :sdiff
+      traverse_balanced(seq1, seq2, callbacks)
+    end
+    RDL.type_cast(callbacks, ""Diff::LCS::DiffCallbacks"").finish if callbacks.respond_to? :finish
+
+    if block
+      callbacks.diffs.map do |hunk|
+        if hunk.kind_of? Array
+          hunk.map { |hunk_block| block[hunk_block] }
+        else
+          block[hunk]
+        end
+      end
+    else
+      callbacks.diffs
+    end
+  end"
+[s]Diff::LCS,lcs,"(([ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ])) { XXX } -> Array<XXX>",,"def lcs(seq1, seq2, &block) #:yields seq1[i] for each matched:
+    matches = Diff::LCS::Internals.lcs(seq1, seq2)
+    ret = []
+    string = seq1.kind_of? String
+    matches.each_with_index do |_e, i|
+      next if matches[i].nil?
+
+      v = string ? seq1[i, 1] : seq1[i]
+      v = block[v] if block
+      ret << v
+    end
+    ret
+  end"
+[s]Diff::LCS,diff,"(([ []: (Number) -> XXX ] and [ []: (Number, Number) -> XXX ] and [ []: (XXX) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ?([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) { XXX } -> XXX",,"def diff(seq1, seq2, callbacks = nil, &block) # :yields diff changes:
+    diff_traversal(:diff, seq1, seq2, callbacks || Diff::LCS::DiffCallbacks, &block)
+  end"
+[s]Diff::LCS,sdiff,"(([ []: (Number) -> XXX ] and [ []: (Number, Number) -> XXX ] and [ []: (XXX) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ?([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) { XXX } -> XXX",,"def sdiff(seq1, seq2, callbacks = nil, &block) #:yields diff changes:
+    diff_traversal(:sdiff, seq1, seq2, callbacks || Diff::LCS::SDiffCallbacks, &block)
+  end"
+[s]Diff::LCS,traverse_sequences,"(([ []: (Number, Number) -> XXX ] and [ []: (XXX) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (Number) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ?([ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) { (Diff::LCS::ContextChange) -> XXX } -> nil",,"def traverse_sequences(seq1, seq2, callbacks = Diff::LCS::SequenceCallbacks) #:yields change events:
+    callbacks ||= Diff::LCS::SequenceCallbacks
+    matches = Diff::LCS::Internals.lcs(seq1, seq2)
+
+    run_finished_a = run_finished_b = false
+    string = seq1.kind_of?(String)
+
+    a_size = seq1.size
+    b_size = seq2.size
+    ai = bj = 0
+
+    (0..matches.size).each do |i|
+      b_line = matches[i]
+
+      ax = string ? seq1[i, 1] : seq1[i]
+      bx = string ? seq2[bj, 1] : seq2[bj]
+
+      if b_line.nil?
+        #unless ax.nil? or (string and RDL.type_cast(ax, ""String"").empty?)
+        unless ax.nil? or (string and ax.empty?)
+          event = Diff::LCS::ContextChange.new('-', i, ax, bj, bx)
+          event = yield event if block_given?
+          callbacks.discard_a(event)
+        end
+      else
+        loop do
+          break unless bj < b_line
+
+          bx = string ? seq2[bj, 1] : seq2[bj]
+          event = Diff::LCS::ContextChange.new('+', i, ax, bj, bx)
+          event = yield event if block_given?
+          callbacks.discard_b(event)
+          bj += 1
+        end
+        bx = string ? seq2[bj, 1] : seq2[bj]
+        event = Diff::LCS::ContextChange.new('=', i, ax, bj, bx)
+        event = yield event if block_given?
+        callbacks.match(event)
+        bj += 1
+      end
+      ai = i
+    end
+    ai += 1
+
+    # The last entry (if any) processed was a match. +ai+ and +bj+ point
+    # just past the last matching lines in their sequences.
+    while (ai < a_size) or (bj < b_size)
+      # last A?
+      if ai == a_size and bj < b_size
+        if callbacks.respond_to?(:finished_a) and !run_finished_a
+          ax = string ? seq1[-1, 1] : seq1[-1]
+          bx = string ? seq2[bj, 1] : seq2[bj]
+          event = Diff::LCS::ContextChange.new('>', (a_size - 1), ax, bj, bx)
+          event = yield event if block_given?
+          #callbacks.finished_a(event) ## MKCHANGE
+          run_finished_a = true
+        else
+          ax = string ? seq1[ai, 1] : seq1[ai]
+          loop do
+            bx = string ? seq2[bj, 1] : seq2[bj]
+            event = Diff::LCS::ContextChange.new('+', ai, ax, bj, bx)
+            event = yield event if block_given?
+            callbacks.discard_b(event)
+            bj += 1
+            break unless bj < b_size
+          end
+        end
+      end
+
+      # last B?
+      if bj == b_size and ai < a_size
+        if callbacks.respond_to?(:finished_b) and !run_finished_b
+          ax = string ? seq2[ai, 1] : seq2[ai]
+          bx = string ? seq2[-1, 1] : seq2[-1]
+          event = Diff::LCS::ContextChange.new('<', ai, ax, (b_size - 1), bx)
+          event = yield event if block_given?
+          #callbacks.finished_b(event) ## MKCHANGE
+          run_finished_b = true
+        else
+          bx = string ? seq2[bj, 1] : seq2[bj]
+          loop do
+            ax = string ? seq2[ai, 1] : seq2[ai]
+            event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
+            event = yield event if block_given?
+            callbacks.discard_a(event)
+            ai += 1
+            break unless bj < b_size
+          end
+        end
+      end
+
+      if ai < a_size
+        ax = string ? seq1[ai, 1] : seq1[ai]
+        bx = string ? seq2[bj, 1] : seq2[bj]
+        event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
+        event = yield event if block_given?
+        callbacks.discard_a(event)
+        ai += 1
+      end
+
+      next unless bj < b_size
+
+      ax = string ? seq1[ai, 1] : seq1[ai]
+      bx = string ? seq2[bj, 1] : seq2[bj]
+      event = Diff::LCS::ContextChange.new('+', ai, ax, bj, bx)
+      event = yield event if block_given?
+      callbacks.discard_b(event)
+      bj += 1
+    end
+  end"
+[s]Diff::LCS,traverse_balanced,"(([ []: (Number, Number) -> XXX ] and [ []: (XXX) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ?([ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ respond_to?: (:change) -> XXX ])) { (Diff::LCS::ContextChange) -> XXX } -> nil",,"def traverse_balanced(seq1, seq2, callbacks = Diff::LCS::BalancedCallbacks)
+    matches = Diff::LCS::Internals.lcs(seq1, seq2)
+    a_size = seq1.size
+    b_size = seq2.size
+    ai = bj = mb = 0
+    ma = -1
+    string = seq1.kind_of?(String)
+
+    # Process all the lines in the match vector.
+    loop do
+      # Find next match indices +ma+ and +mb+
+      loop do
+        ma += 1
+        break unless ma < matches.size and matches[ma].nil?
+      end
+
+      break if ma >= matches.size # end of matches?
+
+      mb = matches[ma]
+
+      # Change(seq2)
+      while (ai < ma) or (bj < mb)
+        ax = string ? seq1[ai, 1] : seq1[ai]
+        bx = string ? seq2[bj, 1] : seq2[bj]
+
+        case [(ai < ma), (bj < mb)]
+        when [true, true]
+          if callbacks.respond_to?(:change)
+            event = Diff::LCS::ContextChange.new('!', ai, ax, bj, bx)
+            event = yield event if block_given?
+            #RDL.type_cast(callbacks, '[s]Diff::LCS::DefaultCallbacks').change(event)
+            ai += 1
+          else
+            event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
+            event = yield event if block_given?
+            callbacks.discard_a(event)
+            ai += 1
+            ax = string ? seq1[ai, 1] : seq1[ai]
+            event = Diff::LCS::ContextChange.new('+', ai, ax, bj, bx)
+            event = yield event if block_given?
+            callbacks.discard_b(event)
+          end
+
+          bj += 1
+        when [true, false]
+          event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
+          event = yield event if block_given?
+          callbacks.discard_a(event)
+          ai += 1
+        when [false, true]
+          event = Diff::LCS::ContextChange.new('+', ai, ax, bj, bx)
+          event = yield event if block_given?
+          callbacks.discard_b(event)
+          bj += 1
+        end
+      end
+
+      # Match
+      ax = string ? seq1[ai, 1] : seq1[ai]
+      bx = string ? seq2[bj, 1] : seq2[bj]
+      event = Diff::LCS::ContextChange.new('=', ai, ax, bj, bx)
+      event = yield event if block_given?
+      callbacks.match(event)
+      ai += 1
+      bj += 1
+    end
+
+    while (ai < a_size) or (bj < b_size)
+      ax = string ? seq1[ai, 1] : seq1[ai]
+      bx = string ? seq2[bj, 1] : seq2[bj]
+
+      case [(ai < a_size), (bj < b_size)]
+      when [true, true]
+        if callbacks.respond_to?(:change)
+          event = Diff::LCS::ContextChange.new('!', ai, ax, bj, bx)
+          event = yield event if block_given?
+          RDL.type_cast(callbacks, '[s]Diff::LCS::DefaultCallbacks').change(event)
+          ai += 1
+        else
+          event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
+          event = yield event if block_given?
+          callbacks.discard_a(event)
+          ai += 1
+          ax = string ? seq1[ai, 1] : seq1[ai]
+          event = Diff::LCS::ContextChange.new('+', ai, ax, bj, bx)
+          event = yield event if block_given?
+          callbacks.discard_b(event)
+        end
+
+        bj += 1
+      when [true, false]
+        event = Diff::LCS::ContextChange.new('-', ai, ax, bj, bx)
+        event = yield event if block_given?
+        callbacks.discard_a(event)
+        ai += 1
+      when [false, true]
+        event = Diff::LCS::ContextChange.new('+', ai, ax, bj, bx)
+        event = yield event if block_given?
+        callbacks.discard_b(event)
+        bj += 1
+      end
+    end
+  end"
+[s]Diff::LCS,patch,"(XXX, [ each: () {(XXX) -> XXX} -> XXX ], ?XXX) -> (XXX or XXX)",,"def patch(src, patchset, direction = nil)
+    # Normalize the patchset.
+    has_changes, patchset = Diff::LCS::Internals.analyze_patchset(patchset)
+
+    return src.respond_to?(:dup) ? src.dup : src unless has_changes
+
+    string = src.kind_of?(String)
+    # Start with a new empty type of the source's class
+    res = src.class.new
+
+    direction ||= Diff::LCS::Internals.intuit_diff_direction(src, patchset)
+
+    ai = bj = 0
+
+    patch_map = PATCH_MAP[direction]
+
+    patchset.each do |change|
+      # Both Change and ContextChange support #action
+      action = patch_map[change.action]
+
+      case change
+      when Diff::LCS::ContextChange
+        case direction
+        when :patch
+          el = change.new_element
+          op = change.old_position
+          np = change.new_position
+        when :unpatch
+          el = change.old_element
+          op = change.new_position
+          np = change.old_position
+        end
+
+        case action
+        when '-' # Remove details from the old string
+          while ai < op
+            res << (string ? src[ai, 1] : src[ai])
+            ai += 1
+            bj += 1
+          end
+          ai += 1
+        when '+'
+          while bj < np
+            res << (string ? src[ai, 1] : src[ai])
+            ai += 1
+            bj += 1
+          end
+
+          res << el
+          bj += 1
+        when '='
+          # This only appears in sdiff output with the SDiff callback.
+          # Therefore, we only need to worry about dealing with a single
+          # element.
+          res << el
+
+          ai += 1
+          bj += 1
+        when '!'
+          while ai < op
+            res << (string ? src[ai, 1] : src[ai])
+            ai += 1
+            bj += 1
+          end
+
+          bj += 1
+          ai += 1
+
+          res << el
+        end
+      when Diff::LCS::Change
+        case action
+        when '-'
+          while ai < change.position
+            res << (string ? src[ai, 1] : src[ai])
+            ai += 1
+            bj += 1
+          end
+          ai += 1
+        when '+'
+          while bj < change.position
+            res << (string ? src[ai, 1] : src[ai])
+            ai += 1
+            bj += 1
+          end
+
+          bj += 1
+
+          res << change.element
+        end
+      end
+    end
+
+    while ai < src.size
+      res << (string ? src[ai, 1] : src[ai])
+      ai += 1
+      bj += 1
+    end
+
+    res
+  end"
+[s]Diff::LCS,unpatch!,"(XXX, [ each: () {(XXX) -> XXX} -> XXX ]) -> (XXX or XXX)",,"def unpatch!(src, patchset)
+    patch(src, patchset, :unpatch)
+  end"
+[s]Diff::LCS,patch!,"(XXX, [ each: () {(XXX) -> XXX} -> XXX ]) -> (XXX or XXX)",,"def patch!(src, patchset)
+    patch(src, patchset, :patch)
+  end"
+[s]Diff::LCS::DefaultCallbacks,match,(XXX) -> XXX,,"def match(event)
+        event
+      end"
+[s]Diff::LCS::DefaultCallbacks,discard_a,(XXX) -> XXX,,"def discard_a(event)
+        event
+      end"
+[s]Diff::LCS::DefaultCallbacks,discard_b,(XXX) -> XXX,,"def discard_b(event)
+        event
+      end"
+[s]Diff::LCS::DefaultCallbacks,change,(Diff::LCS::ContextChange) -> Diff::LCS::ContextChange,,"def change(event)
+        event
+      end"
+[s]Diff::LCS::Change,valid_action?,(XXX) -> (false or true),,"def self.valid_action?(action)
+    VALID_ACTIONS.include? action
+  end"
+[s]Diff::LCS::Change,from_a,(([ []: (Range<Number>) -> XXX ] and [ flatten: (Number) -> XXX ] and [ size: () -> XXX ])) -> Diff::LCS::Change,,"def self.from_a(arr)
+    arr = arr.flatten(1)
+    case arr.size
+    when 5
+      Diff::LCS::ContextChange.new(*(arr[0...5]))
+    when 3
+      Diff::LCS::Change.new(*(arr[0...3]))
+    else
+      fail 'Invalid change array format provided.'
+    end
+  end"
+[s]Diff::LCS::ContextChange,from_a,(([ []: (Range<Number>) -> XXX ] and [ flatten: (Number) -> XXX ] and [ size: () -> XXX ])) -> Diff::LCS::Change,,"def self.from_a(arr)
+    Diff::LCS::Change.from_a(arr)
+  end"
+[s]Diff::LCS::ContextChange,simplify,([ to_a: () -> XXX ]) -> Diff::LCS::Change,,"def self.simplify(event)
+    ea = event.to_a
+
+    case ea[0]
+    when '-'
+      ea[2][1] = nil
+    when '<'
+      ea[0] = '-'
+      ea[2][1] = nil
+    when '+'
+      ea[1][1] = nil
+    when '>'
+      ea[0] = '+'
+      ea[1][1] = nil
+    end
+
+    Diff::LCS::ContextChange.from_a(ea)
+  end"
+[s]Diff::LCS::Internals,lcs,"(([ []: (XXX) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ])) -> Array<Number>",,"def lcs(a, b)
+    a_start = b_start = 0
+    a_finish = a.size - 1
+    b_finish = b.size - 1
+    vector = []
+
+    # Prune off any common elements at the beginning...
+    while (a_start <= a_finish) and (b_start <= b_finish) and (a[a_start] == b[b_start])
+      vector[a_start] = b_start
+      a_start += 1
+      b_start += 1
+    end
+    b_start = a_start
+
+    # Now the end...
+    while (a_start <= a_finish) and (b_start <= b_finish) and (a[a_finish] == b[b_finish])
+      vector[a_finish] = b_finish
+      a_finish -= 1
+      b_finish -= 1
+    end
+
+    # Now, compute the equivalence classes of positions of elements.
+    b_matches = position_hash(b, b_start..b_finish)
+
+    thresh = []
+    links  = []
+    string = a.kind_of?(String)
+
+    (a_start..a_finish).each do |i|
+      ai = string ? RDL.type_cast(a, ""String"")[i, 1] : RDL.type_cast(a, ""Array<String>"")[i]
+      bm = b_matches[ai]
+      k = RDL.type_cast(nil, ""Integer"", force: true)
+      bm.reverse_each do |j|
+        if k and (thresh[k] > j) and (thresh[k - 1] < j)
+          thresh[k] = j
+        else
+          k = replace_next_larger(thresh, j, k)
+        end
+        links[k] = RDL.type_cast([k.positive? ? links[k - 1] : nil, i, j], ""[nil, Integer, Integer]"", force: true) unless k.nil?
+      end
+    end
+
+    unless thresh.empty?
+      link = links[thresh.size - 1]
+      until link.nil?
+        vector[link[1]] = link[2]
+        link = link[0]
+      end
+    end
+
+    vector
+  end"
+[s]Diff::LCS::Internals,intuit_diff_direction,"(([ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ]), [ each: () {(XXX) -> XXX} -> XXX ], ?Number) -> (:patch or :unpatch)",,"def intuit_diff_direction(src, patchset, limit = nil)
+    string = src.kind_of?(String)
+    count = left_match = left_miss = right_match = right_miss = 0
+
+    patchset.each do |change|
+      count += 1
+
+      case change
+      when Diff::LCS::ContextChange
+        le = string ? src[change.old_position, 1] : src[change.old_position]
+        re = string ? src[change.new_position, 1] : src[change.new_position]
+
+        case change.action
+        when '-' # Remove details from the old string
+          if le == change.old_element
+            left_match += 1
+          else
+            left_miss += 1
+          end
+        when '+'
+          if re == change.new_element
+            right_match += 1
+          else
+            right_miss += 1
+          end
+        when '='
+          left_miss += 1 if le != change.old_element
+          right_miss += 1 if re != change.new_element
+        when '!'
+          if le == change.old_element
+            left_match += 1
+          elsif re == change.new_element
+            right_match += 1
+          else
+            left_miss += 1
+            right_miss += 1
+          end
+        end
+      when Diff::LCS::Change
+        # With a simplistic change, we can't tell the difference between
+        # the left and right on '!' actions, so we ignore those. On '='
+        # actions, if there's a miss, we miss both left and right.
+        element = string ? src[change.position, 1] : src[change.position]
+
+        case change.action
+        when '-'
+          if element == change.element
+            left_match += 1
+          else
+            left_miss += 1
+          end
+        when '+'
+          if element == change.element
+            right_match += 1
+          else
+            right_miss += 1
+          end
+        when '='
+          if element != change.element
+            left_miss += 1
+            right_miss += 1
+          end
+        end
+      end
+
+      break if !limit.nil? && (count > limit)
+    end
+
+    no_left = left_match.zero? && left_miss.positive?
+    no_right = right_match.zero? && right_miss.positive?
+
+    case [no_left, no_right]
+    when [false, true]
+      :patch
+    when [true, false]
+      :unpatch
+    else
+      case left_match <=> right_match
+      when 1
+        if left_miss.zero?
+          :patch
+        else
+          :unpatch
+        end
+      when -1
+        if right_miss.zero?
+          :unpatch
+        else
+          :patch
+        end
+      else
+        fail ""The provided patchset does not appear to apply to the provided \
+enumerable as either source or destination value.""
+      end
+    end
+  end"
+[s]Diff::LCS::Internals,replace_next_larger,"(([ <<: (XXX) -> XXX ] and [ []: (Number) -> XXX ] and [ []=: (Number, XXX) -> XXX ] and [ empty?: () -> XXX ] and [ size: () -> XXX ]), ([ ==: (XXX) -> XXX ] and [ >: (XXX) -> XXX ]), ?Number) -> Number",,"def replace_next_larger(enum, value, last_index = nil)
+    # Off the end?
+    if enum.empty? or (value > enum[-1])
+      enum << value
+      return enum.size - 1
+    end
+
+    # Binary search for the insertion point
+    last_index ||= enum.size
+    first_index = 0
+    while first_index <= last_index
+      i = (first_index + last_index) >> 1
+
+      found = enum[i]
+
+      return nil if value == found
+
+      if value > found
+        first_index = i + 1
+      else
+        last_index = i - 1
+      end
+    end
+
+    # The insertion point is in first_index; overwrite the next larger
+    # value.
+    enum[first_index] = value
+    first_index
+  end"
+[s]Diff::LCS::Internals,inverse_vector,"([ dup: () -> XXX ], ([ []: (Number) -> XXX ] and [ size: () -> XXX ])) -> XXX",,"def inverse_vector(a, vector)
+    inverse = a.dup
+    (0...vector.size).each do |i|
+      inverse[vector[i]] = i unless vector[i].nil?
+    end
+    inverse
+  end"
+[s]Diff::LCS::Internals,position_hash,"(([ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ]), [ each: () {(XXX) -> XXX} -> XXX ]) -> Hash<String, Array<Number>>",,"def position_hash(enum, interval)
+    string = enum.kind_of?(String)
+    hash = RDL.type_cast(Hash.new { |h, k| h[k] = [] }, ""Hash<String, Array<Integer>>"")
+    interval.each do |i|
+      k = string ? enum[i, 1] : enum[i]
+      hash[RDL.type_cast(k, ""String"")] << i
+    end
+    hash
+  end"
+[s]Diff::LCS::Ldiff,run,"(%bot, ?XXX, ?[ <<: (XXX) -> XXX ], ?XXX) -> Number",,"def run(args, _input = $stdin, output = $stdout, error = $stderr) #:nodoc:
+    @binary = nil
+
+    args.options do |o|
+      o.banner = ""Usage: #{File.basename($0)} [options] oldfile newfile""
+      o.separator ''
+      o.on(
+        '-c', '-C', '--context [LINES]', Integer,
+        'Displays a context diff with LINES lines', 'of context. Default 3 lines.'
+      ) do |ctx|
+        @format = :context
+        @lines  = ctx || 3
+      end
+      o.on(
+        '-u', '-U', '--unified [LINES]', Integer,
+        'Displays a unified diff with LINES lines', 'of context. Default 3 lines.'
+      ) do |ctx|
+        @format = :unified
+        @lines  = ctx || 3
+      end
+      o.on('-e', 'Creates an \'ed\' script to change', 'oldfile to newfile.') do |_ctx|
+        @format = :ed
+      end
+      o.on('-f', 'Creates an \'ed\' script to change', 'oldfile to newfile in reverse order.') do |_ctx|
+        @format = :reverse_ed
+      end
+      o.on(
+        '-a', '--text',
+        'Treat the files as text and compare them', 'line-by-line, even if they do not seem', 'to be text.'
+      ) do |_txt|
+        @binary = false
+      end
+      o.on('--binary', 'Treats the files as binary.') do |_bin|
+        @binary = true
+      end
+      o.on('-q', '--brief', 'Report only whether or not the files', 'differ, not the details.') do |_ctx|
+        @format = :report
+      end
+      o.on_tail('--help', 'Shows this text.') do
+        error << o
+        return 0
+      end
+      o.on_tail('--version', 'Shows the version of Diff::LCS.') do
+        error << Diff::LCS::Ldiff::BANNER
+        return 0
+      end
+      o.on_tail ''
+      o.on_tail 'By default, runs produces an ""old-style"" diff, with output like UNIX diff.'
+      o.parse!
+    end
+
+    unless args.size == 2
+      error << args.options
+      return 127
+    end
+
+    # Defaults are for old-style diff
+    @format ||= :old
+    @lines  ||= 0
+
+    file_old, file_new = *ARGV
+
+    case @format
+    when :context
+      char_old = '*' * 3
+      char_new = '-' * 3
+    when :unified
+      char_old = '-' * 3
+      char_new = '+' * 3
+    end
+
+    # After we've read up to a certain point in each file, the number of
+    # items we've read from each file will differ by FLD (could be 0).
+    file_length_difference = 0
+
+    if @binary.nil? or @binary
+      data_old = IO.read(file_old)
+      data_new = IO.read(file_new)
+
+      # Test binary status
+      if @binary.nil?
+        old_txt = data_old[0, 4096].scan(/\0/).empty?
+        new_txt = data_new[0, 4096].scan(/\0/).empty?
+        @binary = !old_txt or !new_txt
+      end
+
+      unless @binary
+        data_old = data_old.split($/).map { |e| e.chomp }
+        data_new = data_new.split($/).map { |e| e.chomp }
+      end
+    else
+      data_old = IO.readlines(file_old).map { |e| e.chomp }
+      data_new = IO.readlines(file_new).map { |e| e.chomp }
+    end
+
+    # diff yields lots of pieces, each of which is basically a Block object
+    if @binary
+      diffs = (data_old == data_new)
+    else
+      diffs = Diff::LCS.diff(data_old, data_new)
+      diffs = nil if diffs.empty?
+    end
+
+    return 0 unless diffs
+
+    if @format == :report
+      output << ""Files #{file_old} and #{file_new} differ\n""
+      return 1
+    end
+
+    if (@format == :unified) or (@format == :context)
+      ft = File.stat(file_old).mtime.localtime.strftime('%Y-%m-%d %H:%M:%S.000000000 %z')
+      output << ""#{char_old} #{file_old}\t#{ft}\n""
+      ft = File.stat(file_new).mtime.localtime.strftime('%Y-%m-%d %H:%M:%S.000000000 %z')
+      output << ""#{char_new} #{file_new}\t#{ft}\n""
+    end
+
+    # Loop over hunks. If a hunk overlaps with the last hunk, join them.
+    # Otherwise, print out the old one.
+    oldhunk = hunk = RDL.type_cast(nil, ""Diff::LCS::Hunk"")
+
+    if @format == :ed
+      real_output = output
+      output = []
+    end
+
+    RDL.type_cast(diffs, ""Array<Array<Diff::LCS::Change>>"").each do |piece|
+      begin
+        hunk = Diff::LCS::Hunk.new(RDL.type_cast(data_old, ""Array<String>""), RDL.type_cast(data_new, ""Array<String>""), piece, @lines, file_length_difference)
+        file_length_difference = hunk.file_length_difference
+
+        next unless oldhunk
+        next if @lines.positive? and hunk.merge(oldhunk)
+
+        output << oldhunk.diff(@format) << ""\n""
+      ensure
+        oldhunk = hunk
+      end
+    end
+
+    last = RDL.type_cast(oldhunk.diff(@format), ""String"")
+    last << ""\n"" if last.respond_to?(:end_with?) && last.end_with?(""\n"")
+
+    output << last
+
+    #RDL.type_cast(output, ""Array<Diff::LCS::Hunk>"").reverse_each { |e| RDL.type_cast(real_output, ""String"")  << e.diff(:ed_finish) } if @format == :ed ## different output type when @format is :ed
+    RDL.type_cast(output, ""Array<Diff::LCS::Hunk>"").reverse_each { |e| RDL.type_cast(real_output, ""String"")  << e.diff(:ed_finish) } if @format == :ed ## different output type when @format is :ed
+
+
+    1
+  end"
+Diff::LCS,lcs,"(([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ])) { XXX } -> Array<XXX>",,"def lcs(other, &block) #:yields self[i] if there are matched subsequences:
+    Diff::LCS.lcs(RDL.type_cast(self, ""String or Array""), other, &block)
+  end"
+Diff::LCS,diff,"(([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ?([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) { XXX } -> XXX",,"def diff(other, callbacks = nil, &block)
+    Diff::LCS.diff(RDL.type_cast(self, ""String or Array""), other, callbacks, &block)
+  end"
+Diff::LCS,sdiff,"(([ []: ((XXX or XXX)) -> XXX ] and [ []: (XXX) -> XXX ] and [ []: (XXX, Number) -> XXX ] and [ kind_of?: (Class) -> XXX ] and [ size: () -> XXX ]), ?([ diffs: () -> XXX ] and [ discard_a: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ discard_b: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ match: ((Diff::LCS::ContextChange or XXX)) -> XXX ] and [ new: () -> XXX ] and [ respond_to?: (:change) -> XXX ] and [ respond_to?: (:finish) -> XXX ] and [ respond_to?: (:finished_a) -> XXX ] and [ respond_to?: (:finished_b) -> XXX ])) { XXX } -> XXX",,"def sdiff(other, callbacks = nil, &block)
+    Diff::LCS.sdiff(RDL.type_cast(self, ""String or Array""), other, callbacks, &block)
+  end"
+Diff::LCS,patch,([ each: () {(XXX) -> XXX} -> XXX ]) -> (XXX or XXX),,"def patch(patchset)
+    Diff::LCS.patch(RDL.type_cast(self, ""String or Array""), patchset)
+  end"
+Diff::LCS,patch!,([ each: () {(XXX) -> XXX} -> XXX ]) -> (XXX or XXX),,"def patch!(patchset)
+    Diff::LCS.patch!(RDL.type_cast(self, ""String or Array""), patchset)
+  end"
+Diff::LCS,unpatch!,([ each: () {(XXX) -> XXX} -> XXX ]) -> (XXX or XXX),,"def unpatch!(patchset)
+    Diff::LCS.unpatch!(RDL.type_cast(self, ""String or Array""), patchset)
+  end"
+Diff::LCS::DiffCallbacks,initialize,() { (Diff::LCS::DiffCallbacks) -> XXX } -> self,,"def initialize # :yields self:
+    @hunk = []
+    @diffs = []
+
+    return unless block_given?
+
+    begin
+      yield self
+    ensure
+      finish
+    end
+  end"
+Diff::LCS::DiffCallbacks,finish,() -> Array<Diff::LCS::Change>,,"def finish
+    finish_hunk
+  end"
+Diff::LCS::DiffCallbacks,match,(XXX) -> Array<Diff::LCS::Change>,,"def match(_event)
+    finish_hunk
+  end"
+Diff::LCS::DiffCallbacks,discard_a,(Diff::LCS::ContextChange) -> XXX,,"def discard_a(event)
+    @hunk << Diff::LCS::Change.new('-', event.old_position, event.old_element)
+  end"
+Diff::LCS::DiffCallbacks,discard_b,(Diff::LCS::ContextChange) -> XXX,,"def discard_b(event)
+    @hunk << Diff::LCS::Change.new('+', event.new_position, event.new_element)
+  end"
+Diff::LCS::DiffCallbacks,finish_hunk,() -> Array<Diff::LCS::Change>,,"def finish_hunk
+    @diffs << @hunk unless @hunk.empty?
+    @hunk = []
+  end"
+Diff::LCS::ContextDiffCallbacks,discard_a,([ to_a: () -> XXX ]) -> XXX,,"def discard_a(event)
+    @hunk << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::ContextDiffCallbacks,discard_b,([ to_a: () -> XXX ]) -> XXX,,"def discard_b(event)
+    @hunk << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::ContextDiffCallbacks,change,([ to_a: () -> XXX ]) -> XXX,,"def change(event)
+    @hunk << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::SDiffCallbacks,initialize,() { (Diff::LCS::SDiffCallbacks) -> XXX } -> self,,"def initialize #:yields self:
+    @diffs = []
+    yield self if block_given?
+  end"
+Diff::LCS::SDiffCallbacks,match,([ to_a: () -> XXX ]) -> XXX,,"def match(event)
+    @diffs << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::SDiffCallbacks,discard_a,([ to_a: () -> XXX ]) -> XXX,,"def discard_a(event)
+    @diffs << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::SDiffCallbacks,discard_b,([ to_a: () -> XXX ]) -> XXX,,"def discard_b(event)
+    @diffs << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::SDiffCallbacks,change,([ to_a: () -> XXX ]) -> XXX,,"def change(event)
+    @diffs << Diff::LCS::ContextChange.simplify(event)
+  end"
+Diff::LCS::Block,initialize,([ each: () {(XXX) -> XXX} -> XXX ]) -> self,,"def initialize(chunk)
+    @changes = []
+    @insert = []
+    @remove = []
+
+    chunk.each do |item|
+      @changes << item
+      @remove << item if item.deleting?
+      @insert << item if item.adding?
+    end
+  end"
+Diff::LCS::Block,diff_size,() -> XXX,,"def diff_size
+    @insert.size - @remove.size
+  end"
+Diff::LCS::Block,op,() -> String,,"def op
+    case [@remove.empty?, @insert.empty?]
+    when [false, false]
+      '!'
+    when [false, true]
+      '-'
+    when [true, false]
+      '+'
+    else # [true, true]
+      '^'
+    end
+  end"
+Diff::LCS::Change,initialize,(*XXX) -> self,,"def initialize(*args)
+    @action, @position, @element = *args
+
+    fail ""Invalid Change Action '#{@action}'"" unless Diff::LCS::Change.valid_action?(@action)
+    fail 'Invalid Position Type' unless @position.kind_of? IntClass
+  end"
+Diff::LCS::Change,inspect,(*XXX) -> String,,"def inspect(*_args)
+    ""#<#{self.class}: #{to_a.inspect}>""
+  end"
+Diff::LCS::Change,to_a,"() -> [XXX, XXX, XXX]",,"def to_a
+    [@action, @position, @element]
+  end"
+Diff::LCS::Change,==,(Diff::LCS::Change) -> XXX,,"def ==(other)
+    (self.class == other.class) and
+      (action == other.action) and
+      (position == other.position) and
+      (element == other.element)
+  end"
+Diff::LCS::Change,<=>,(Diff::LCS::Change) -> XXX,,"def <=>(other)
+    r = action <=> other.action
+    r = position <=> other.position if r.zero?
+    r = element <=> other.element if r.zero?
+    r
+  end"
+Diff::LCS::Change,adding?,() -> (false or true),,"def adding?
+    @action == '+'
+  end"
+Diff::LCS::Change,deleting?,() -> (false or true),,"def deleting?
+    @action == '-'
+  end"
+Diff::LCS::Change,unchanged?,() -> (false or true),,"def unchanged?
+    @action == '='
+  end"
+Diff::LCS::Change,changed?,() -> (false or true),,"def changed?
+    @action == '!'
+  end"
+Diff::LCS::Change,finished_a?,() -> (false or true),,"def finished_a?
+    @action == '>'
+  end"
+Diff::LCS::Change,finished_b?,() -> (false or true),,"def finished_b?
+    @action == '<'
+  end"
+Diff::LCS::ContextChange,initialize,(*XXX) -> self,,"def initialize(*args)
+    @action, @old_position, @old_element, @new_position, @new_element = *args
+
+    fail ""Invalid Change Action '#{@action}'"" unless Diff::LCS::Change.valid_action?(@action)
+    fail 'Invalid (Old) Position Type' unless @old_position.nil? or @old_position.kind_of? IntClass
+    fail 'Invalid (New) Position Type' unless @new_position.nil? or @new_position.kind_of? IntClass
+  end"
+Diff::LCS::ContextChange,to_a,"() -> Array<(String or XXX or [XXX, XXX])>",,"def to_a
+    [
+      @action,
+      [@old_position, @old_element],
+      [@new_position, @new_element]
+    ]
+  end"
+Diff::LCS::ContextChange,==,(Diff::LCS::ContextChange) -> XXX,,"def ==(other)
+    (self.class == other.class) and
+      (@action == other.action) and
+      (@old_position == other.old_position) and
+      (@new_position == other.new_position) and
+      (@old_element == other.old_element) and
+      (@new_element == other.new_element)
+  end"
+Diff::LCS::ContextChange,<=>,(Diff::LCS::ContextChange) -> XXX,,"def <=>(other)
+    r = @action <=> other.action
+    r = @old_position <=> other.old_position if r.zero?
+    r = @new_position <=> other.new_position if r.zero?
+    r = @old_element <=> other.old_element if r.zero?
+    r = @new_element <=> other.new_element if r.zero?
+    r
+  end"
+Diff::LCS::HTMLDiff,initialize,"(XXX, XXX, ?{ expand_tabs: Number, output: (XXX or nil), css: String, title: String }) -> self",,"def initialize(left, right, options = nil)
+    @left     = left
+    @right    = right
+    @options  = options
+
+    @options = DEFAULT_OPTIONS.dup if @options.nil?
+  end"
+Diff::LCS::HTMLDiff,verify_options,() -> XXX,,"def verify_options
+    @options[:expand_tabs] ||= 4
+    @options[:expand_tabs] = 4 if @options[:expand_tabs].negative?
+
+    @options[:output] ||= $stdout
+
+    @options[:css] ||= DEFAULT_CSS.dup
+
+    @options[:title] ||= 'diff'
+  end"
+Diff::LCS::HTMLDiff::Callbacks,initialize,"([ <<: (XXX) -> XXX ], ?([ []: (:match_class) -> XXX ] and [ []: (:only_a_class) -> XXX ] and [ []: (:only_b_class) -> XXX ])) -> self",,"def initialize(output, options = {})
+      @output = output
+      options ||= {}
+
+      @match_class = options[:match_class] || 'match'
+      @only_a_class = options[:only_a_class] || 'only_a'
+      @only_b_class = options[:only_b_class] || 'only_b'
+    end"
+Diff::LCS::HTMLDiff::Callbacks,htmlize,"([ empty?: () -> XXX ], (String or Symbol)) -> String",,"def htmlize(element, css_class)
+      element = '&nbsp;' if element.empty?
+      %Q(<pre class=""#{__send__(css_class)}"">#{element}</pre>\n)
+    end"
+Diff::LCS::HTMLDiff::Callbacks,match,(Diff::LCS::ContextChange) -> XXX,,"def match(event)
+      @output << htmlize(event.old_element, :match_class)
+    end"
+Diff::LCS::HTMLDiff::Callbacks,discard_a,(Diff::LCS::ContextChange) -> XXX,,"def discard_a(event)
+      @output << htmlize(event.old_element, :only_a_class)
+    end"
+Diff::LCS::HTMLDiff::Callbacks,discard_b,(Diff::LCS::ContextChange) -> XXX,,"def discard_b(event)
+      @output << htmlize(event.new_element, :only_b_class)
+    end"
+Diff::LCS::Hunk,initialize,"(Array<String>, Array<String>, [ each: () {(XXX) -> XXX} -> XXX ], (File::Stat or Numeric), [ +: (XXX) -> XXX ]) -> self",,"def initialize(data_old, data_new, piece, flag_context, file_length_difference)
+    # At first, a hunk will have just one Block in it
+    @blocks = [Diff::LCS::Block.new(piece)]
+    if String.method_defined?(:encoding)
+      @preferred_data_encoding = data_old.fetch(0, data_new.fetch(0, '')).encoding
+    end
+    @data_old = data_old
+    @data_new = data_new
+
+    before = after = file_length_difference
+    after += @blocks[0].diff_size
+    @file_length_difference = after # The caller must get this manually
+    @max_diff_size = @blocks.lazy.map { |e| e.diff_size }.max
+
+    # Save the start & end of each array. If the array doesn't exist (e.g.,
+    # we're only adding items in this block), then figure out the line
+    # number based on the line number of the other file and the current
+    # difference in file lengths.
+    if @blocks[0].remove.empty?
+      a1 = a2 = nil
+    else
+      a1 = @blocks[0].remove[0].position
+      a2 = @blocks[0].remove[-1].position
+    end
+
+    if @blocks[0].insert.empty?
+      b1 = b2 = nil
+    else
+      b1 = @blocks[0].insert[0].position
+      b2 = @blocks[0].insert[-1].position
+    end
+
+    @start_old = a1 || b1
+    @start_new = b1 || a1
+    @end_old   = a2 || b2
+    @end_new   = b2 || a2
+
+    self.flag_context = flag_context
+  end"
+Diff::LCS::Hunk,flag_context=,((File::Stat or Numeric)) -> nil,,"def flag_context=(context) #:nodoc: # rubocop:disable Lint/DuplicateMethods
+    return if context.nil? or context.zero?
+
+    add_start = context > @start_old ? @start_old : context
+    @start_old -= add_start
+    @start_new -= add_start
+
+    add_end =
+      if (@end_old + context) > @data_old.size
+        @data_old.size - @end_old
+      else
+        context
+      end
+
+    add_end = @max_diff_size if add_end > @max_diff_size
+
+    @end_old += add_end
+    @end_new += add_end
+  end"
+Diff::LCS::Hunk,merge,(Diff::LCS::Hunk) -> nil,,"def merge(hunk)
+    return unless overlaps?(hunk)
+
+    @start_old = hunk.start_old
+    @start_new = hunk.start_new
+    blocks.unshift(*hunk.blocks)
+  end"
+Diff::LCS::Hunk,overlaps?,(Diff::LCS::Hunk) -> Diff::LCS::Hunk,,"def overlaps?(hunk)
+    hunk and (((@start_old - hunk.end_old) <= 1) or
+              ((@start_new - hunk.end_new) <= 1))
+  end"
+Diff::LCS::Hunk,diff,([ ==: (:reverse_ed) -> XXX ]) -> Diff::LCS::Hunk,,"def diff(format)
+    case format
+    when :old
+      old_diff
+    when :unified
+      unified_diff
+    when :context
+      context_diff
+    when :ed
+      self
+    when :reverse_ed, :ed_finish
+      ed_diff(format)
+    else
+      fail ""Unknown diff format #{format}.""
+    end
+  end"
+Diff::LCS::Hunk,old_diff,() -> XXX,,"def old_diff
+    warn 'Expecting only one block in an old diff hunk!' if @blocks.size > 1
+    op_act = { '+' => 'a', '-' => 'd', '!' => 'c' }
+
+    block = @blocks[0]
+
+    # Calculate item number range. Old diff range is just like a context
+    # diff range, except the ranges are on one line with the action between
+    # them.
+    s = encode(""#{context_range(:old)}#{op_act[block.op]}#{context_range(:new)}\n"")
+    # If removing anything, just print out all the remove lines in the hunk
+    # which is just all the remove lines in the block.
+    unless block.remove.empty?
+      @data_old[@start_old..@end_old].each { |e| s << encode('< ') + e + encode(""\n"") }
+    end
+
+    s << encode(""---\n"") if block.op == '!'
+
+    unless block.insert.empty?
+      @data_new[@start_new..@end_new].each { |e| s << encode('> ') + e + encode(""\n"") }
+    end
+
+    s
+  end"
+Diff::LCS::Hunk,unified_diff,() -> XXX,,"def unified_diff
+    # Calculate item number range.
+    s = encode(""@@ -#{unified_range(:old)} +#{unified_range(:new)} @@\n"")
+
+    # Outlist starts containing the hunk of the old file. Removing an item
+    # just means putting a '-' in front of it. Inserting an item requires
+    # getting it from the new file and splicing it in. We splice in
+    # +num_added+ items. Remove blocks use +num_added+ because splicing
+    # changed the length of outlist.
+    #
+    # We remove +num_removed+ items. Insert blocks use +num_removed+
+    # because their item numbers -- corresponding to positions in the NEW
+    # file -- don't take removed items into account.
+    lo, hi, num_added, num_removed = @start_old, @end_old, 0, 0
+
+    outlist = @data_old[lo..hi].map { |e| e.insert(0, encode(' ')) }
+
+    @blocks.each do |block|
+      block.remove.each do |item|
+        op     = item.action.to_s # -
+        offset = item.position - lo + num_added
+        outlist[offset][0, 1] = encode(op)
+        num_removed += 1
+      end
+      block.insert.each do |item|
+        op     = item.action.to_s # +
+        offset = item.position - @start_new + num_removed
+        outlist[offset, 0] = encode(op) + @data_new[item.position]
+        num_added += 1
+      end
+    end
+
+    s << outlist.join(encode(""\n""))
+  end"
+Diff::LCS::Hunk,context_diff,() -> XXX,,"def context_diff
+    s = encode(""***************\n"")
+    s << encode(""*** #{context_range(:old)} ****\n"")
+    r = context_range(:new)
+
+    # Print out file 1 part for each block in context diff format if there
+    # are any blocks that remove items
+    lo, hi = @start_old, @end_old
+    removes = @blocks.reject { |e| e.remove.empty? }
+    if removes
+      outlist = @data_old[lo..hi].map { |e| e.insert(0, encode(' ')) }
+
+      removes.each do |block|
+        block.remove.each do |item|
+          outlist[item.position - lo].insert(0, encode(block.op)) # - or !
+        end
+      end
+      s << outlist.join(""\n"")
+    end
+
+    s << encode(""\n--- #{r} ----\n"")
+    lo, hi = @start_new, @end_new
+    inserts = @blocks.reject { |e| e.insert.empty? }
+    if inserts
+      outlist = @data_new[lo..hi].collect { |e| e.insert(0, encode(' ')) }
+      inserts.each do |block|
+        block.insert.each do |item|
+          outlist[item.position - lo].insert(0, encode(block.op)) # - or !
+        end
+      end
+      s << outlist.join(""\n"")
+    end
+    s
+  end"
+Diff::LCS::Hunk,ed_diff,([ ==: (:reverse_ed) -> XXX ]) -> XXX,,"def ed_diff(format)
+    op_act = { '+' => 'a', '-' => 'd', '!' => 'c' }
+    warn 'Expecting only one block in an old diff hunk!' if @blocks.size > 1
+
+    s =
+      if format == :reverse_ed
+        encode(""#{op_act[@blocks[0].op]}#{context_range(:old)}\n"")
+      else
+        encode(""#{context_range(:old, ' ')}#{op_act[@blocks[0].op]}\n"")
+      end
+
+    unless @blocks[0].insert.empty?
+      @data_new[@start_new..@end_new].each do |e| s << e + encode(""\n"") end
+      s << encode("".\n"")
+    end
+    s
+  end"
+Diff::LCS::Hunk,context_range,"(XXX, ?XXX) -> String",,"def context_range(mode, op = ',') # rubocop:disable Naming/UncommunicativeMethodParamName
+    case mode
+    when :old
+      s, e = (@start_old + 1), (@end_old + 1)
+    when :new
+      s, e = (@start_new + 1), (@end_new + 1)
+    end
+
+    RDL.type_cast(s, ""Integer"") < e ? ""#{s}#{op}#{e}"" : e.to_s
+  end"
+Diff::LCS::Hunk,unified_range,(XXX) -> String,,"def unified_range(mode)
+    case mode
+    when :old
+      s, e = (@start_old + 1), (@end_old + 1)
+    when :new
+      s, e = (@start_new + 1), (@end_new + 1)
+    end
+
+    length = RDL.type_cast(e, ""Integer"") - s + 1
+    first = length < 2 ? e : s # ""strange, but correct""
+    length == 1 ? first.to_s : ""#{first},#{length}""
+  end"

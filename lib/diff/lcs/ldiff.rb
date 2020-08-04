@@ -142,16 +142,16 @@ class << Diff::LCS::Ldiff
 
     # Loop over hunks. If a hunk overlaps with the last hunk, join them.
     # Otherwise, print out the old one.
-    oldhunk = hunk = nil
+    oldhunk = hunk = RDL.type_cast(nil, "Diff::LCS::Hunk")
 
     if @format == :ed
       real_output = output
       output = []
     end
 
-    diffs.each do |piece|
+    RDL.type_cast(diffs, "Array<Array<Diff::LCS::Change>>").each do |piece|
       begin
-        hunk = Diff::LCS::Hunk.new(data_old, data_new, piece, @lines, file_length_difference)
+        hunk = Diff::LCS::Hunk.new(RDL.type_cast(data_old, "Array<String>"), RDL.type_cast(data_new, "Array<String>"), piece, @lines, file_length_difference)
         file_length_difference = hunk.file_length_difference
 
         next unless oldhunk
@@ -163,12 +163,14 @@ class << Diff::LCS::Ldiff
       end
     end
 
-    last = oldhunk.diff(@format)
-    last << "\n" if last.respond_to?(:end_with?) && !last.end_with?("\n")
+    last = RDL.type_cast(oldhunk.diff(@format), "String")
+    last << "\n" if last.respond_to?(:end_with?) && last.end_with?("\n")
 
     output << last
 
-    output.reverse_each { |e| real_output << e.diff(:ed_finish) } if @format == :ed
+    #RDL.type_cast(output, "Array<Diff::LCS::Hunk>").reverse_each { |e| RDL.type_cast(real_output, "String")  << e.diff(:ed_finish) } if @format == :ed ## different output type when @format is :ed
+    RDL.type_cast(output, "Array<Diff::LCS::Hunk>").reverse_each { |e| RDL.type_cast(real_output, "String")  << e.diff(:ed_finish) } if @format == :ed ## different output type when @format is :ed
+
 
     1
   end
